@@ -10,6 +10,8 @@ class CompetitionFeedback extends Model
 {
     use HasFactory;
 
+    protected $table = 'competition_feedbacks';
+
     protected $fillable = [
         'user_id', 'competition_name', 'competition_date',
         'situation_response', 'victory_response',
