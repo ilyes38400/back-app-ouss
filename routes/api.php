@@ -11,6 +11,7 @@ use App\Http\Controllers\API\ProgramController;
 use App\Http\Controllers\API\ProgramPurchaseController;
 use App\Http\Controllers\API\UserWorkoutLogController;
 use App\Http\Controllers\API\UserGoalAchievementController;
+use App\Http\Controllers\CompetitionFeedbackController;
 
 /*
 |--------------------------------------------------------------------------
@@ -168,5 +169,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // Routes pour les paiements Stripe
     Route::post('create-program-payment-intent', [API\ProgramPurchaseController::class, 'createPaymentIntent']);
     Route::post('confirm-program-purchase', [API\ProgramPurchaseController::class, 'confirmPurchase']);
+
+    // Routes pour les questionnaires de compétition
+    Route::post('competition-feedback', [CompetitionFeedbackController::class, 'store']);
+    Route::get('competition-feedback', [CompetitionFeedbackController::class, 'index']);
+    Route::get('competition-feedback/{id}', [CompetitionFeedbackController::class, 'show']);
+    Route::put('competition-feedback/{id}', [CompetitionFeedbackController::class, 'update']);
+    Route::delete('competition-feedback/{id}', [CompetitionFeedbackController::class, 'destroy']);
 
 });
