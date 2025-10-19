@@ -12,6 +12,7 @@ use App\Http\Controllers\API\ProgramPurchaseController;
 use App\Http\Controllers\API\UserWorkoutLogController;
 use App\Http\Controllers\API\UserGoalAchievementController;
 use App\Http\Controllers\CompetitionFeedbackController;
+use App\Http\Controllers\TrainingLogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -176,5 +177,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('competition-feedback/{id}', [CompetitionFeedbackController::class, 'show']);
     Route::put('competition-feedback/{id}', [CompetitionFeedbackController::class, 'update']);
     Route::delete('competition-feedback/{id}', [CompetitionFeedbackController::class, 'destroy']);
+
+    // Routes pour les carnets d'entraînement
+    Route::post('training-logs', [TrainingLogController::class, 'store']);
+    Route::get('training-logs', [TrainingLogController::class, 'index']);
+    Route::get('training-logs/{id}', [TrainingLogController::class, 'show']);
+    Route::put('training-logs/{id}', [TrainingLogController::class, 'update']);
+    Route::delete('training-logs/{id}', [TrainingLogController::class, 'destroy']);
 
 });
