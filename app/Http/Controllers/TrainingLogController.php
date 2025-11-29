@@ -14,6 +14,7 @@ class TrainingLogController extends Controller
             'discipline' => 'required|string|max:255',
             'dominance' => 'required|in:mental,physique,technique,tactique',
             'duration' => 'required|string|max:50',
+            'date' => 'required|date',
             'intensity' => 'required|numeric|between:0,10',
             'ifp' => 'required|numeric|between:0,10',
             'engagement' => 'required|numeric|between:0,10',
@@ -35,6 +36,7 @@ class TrainingLogController extends Controller
                 'discipline' => $trainingLog->discipline,
                 'dominance' => $trainingLog->dominance,
                 'duration' => $trainingLog->duration,
+                'date' => $trainingLog->date,
                 'created_at' => $trainingLog->created_at->toISOString(),
                 'updated_at' => $trainingLog->updated_at->toISOString(),
                 'scores' => [
@@ -53,7 +55,7 @@ class TrainingLogController extends Controller
     public function index(Request $request): JsonResponse
     {
         $trainingLogs = TrainingLog::where('user_id', $request->user()->id)
-            ->orderBy('created_at', 'desc')
+            ->orderBy('date', 'desc')
             ->paginate(10);
 
         return response()->json([
@@ -83,6 +85,7 @@ class TrainingLogController extends Controller
             'discipline' => 'required|string|max:255',
             'dominance' => 'required|in:mental,physique,technique,tactique',
             'duration' => 'required|string|max:50',
+            'date' => 'required|date',
             'intensity' => 'required|numeric|between:0,10',
             'ifp' => 'required|numeric|between:0,10',
             'engagement' => 'required|numeric|between:0,10',
@@ -111,6 +114,24 @@ class TrainingLogController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Carnet d\'entraînement supprimé avec succès'
+        ]);
+    }
+
+    public function getByDate(Request $request, $date): JsonResponse
+    {
+        $user = $request->user();
+
+        $trainingLog = TrainingLog::where('user_id', $user->id)
+                                 ->whereDate('date', $date)
+                                 ->first();
+
+        if (!$trainingLog) {
+            return response()->json(['message' => 'Aucun entraînement trouvé pour cette date'], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $trainingLog
         ]);
     }
 }

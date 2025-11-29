@@ -11,7 +11,7 @@ class TrainingLog extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'discipline', 'dominance', 'duration',
+        'user_id', 'discipline', 'dominance', 'duration', 'date',
         'intensity', 'ifp', 'engagement', 'focus', 'stress',
         'comment', 'productive'
     ];

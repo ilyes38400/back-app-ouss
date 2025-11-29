@@ -21,7 +21,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
      * @var array
      */
     protected $table = 'ec_customers';
-    protected $fillable = [ 'username', 'first_name', 'last_name', 'phone_number', 'status', 'email', 'password', 'gender', 'display_name', 'login_type', 'user_type', 'player_id', 'is_subscribe', 'last_notification_seen' ];
+    protected $fillable = [ 'username', 'first_name', 'last_name', 'phone_number', 'status', 'email', 'password', 'display_name', 'login_type', 'user_type', 'player_id', 'is_subscribe', 'last_notification_seen' ];
 
     /**
      * The attributes that should be hidden for arrays.

@@ -36,9 +36,8 @@ class UserController extends Controller
         $user = User::create($input);
         $user->assignRole($input['user_type']);
 
-        if( $request->has('user_profile') && $request->user_profile != null ) {
-            $user->userProfile()->create($request->user_profile);
-        }
+        // User profile creation removed for simplified registration
+        // Profile data can be added later through separate endpoints
 
         $user->api_token = $user->createToken('auth_token')->plainTextToken;
         $user->profile_image = getSingleMedia($user, 'profile_image', null);

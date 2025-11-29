@@ -30,16 +30,34 @@ class UserRequest extends FormRequest
         $rules = [];
         if(request()->is('api*')) {
             $user_id = auth()->user()->id ?? request()->id;
-            $rules = [
-                'username' => 'required|unique:ec_customers,username,'.$user_id,
-                'email' => 'required|max:191|email|unique:ec_customers,email,'.$user_id,
-                'phone_number' => 'max:20|unique:ec_customers,phone_number,'.$user_id,
-            ];
+
+            // For API registration, we need essential fields
+            if(request()->isMethod('post') && request()->is('api/register')) {
+                $rules = [
+                    'first_name' => 'required|string|max:255',
+                    'last_name' => 'required|string|max:255',
+                    'email' => 'required|max:191|email|unique:ec_customers,email',
+                    'password' => 'required|min:6',
+                    'phone_number' => 'required|max:20|unique:ec_customers,phone_number',
+                    'user_type' => 'required|string',
+                    'status' => 'required|string',
+                    'username' => 'required|unique:ec_customers,username',
+                    'player_id' => 'nullable|string',
+                    'login_type' => 'nullable|string',
+                ];
+            } else {
+                // For other API operations (updates)
+                $rules = [
+                    'username' => 'required|unique:ec_customers,username,'.$user_id,
+                    'email' => 'required|max:191|email|unique:ec_customers,email,'.$user_id,
+                    'phone_number' => 'max:20|unique:ec_customers,phone_number,'.$user_id,
+                ];
+            }
         } else {
-            
+
             $method = strtolower($this->method());
             $user_id = $this->route()->user;
-    
+
             switch ($method) {
                 case 'post':
                     $rules = [
@@ -57,7 +75,7 @@ class UserRequest extends FormRequest
                 break;
             }
         }
-    
+
         return $rules;
     }
     
