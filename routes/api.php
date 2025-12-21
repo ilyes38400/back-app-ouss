@@ -182,6 +182,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // Routes pour les carnets d'entraînement
     Route::post('training-logs', [TrainingLogController::class, 'store']);
     Route::get('training-logs', [TrainingLogController::class, 'index']);
+    Route::get('training-logs/stats', [TrainingLogController::class, 'getStats']);
     Route::get('training-logs/by-date/{date}', [TrainingLogController::class, 'getByDate']);
     Route::get('training-logs/{id}', [TrainingLogController::class, 'show']);
     Route::put('training-logs/{id}', [TrainingLogController::class, 'update']);

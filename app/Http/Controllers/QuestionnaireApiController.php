@@ -33,17 +33,23 @@ class QuestionnaireApiController extends Controller
             ->select([
                 DB::raw('DATE(competition_date) as competition_date'),
                 'competition_name',
-                DB::raw('ROUND(AVG(motivation), 2) as motivation'),
-                DB::raw('ROUND(AVG(focus), 2) as focus'),
-                DB::raw('ROUND(AVG(mental_presence), 2) as mental_presence'),
+                // Attention
+                DB::raw('ROUND(AVG(full_mindfulness), 2) as full_mindfulness'),
+                DB::raw('ROUND(AVG(objective_clarity), 2) as objective_clarity'),
+                DB::raw('ROUND(AVG(letting_go), 2) as letting_go'),
+                DB::raw('ROUND(AVG(decision_relevance), 2) as decision_relevance'),
+                // Engagement
+                DB::raw('ROUND(AVG(activation), 2) as activation'),
+                DB::raw('ROUND(AVG(engagement), 2) as engagement'),
+                DB::raw('ROUND(AVG(initiative), 2) as initiative'),
+                // Ressentis
                 DB::raw('ROUND(AVG(physical_sensations), 2) as physical_sensations'),
-                DB::raw('ROUND(AVG(emotional_stability), 2) as emotional_stability'),
-                DB::raw('ROUND(AVG(decision_making), 2) as decision_making'),
-                DB::raw('ROUND(AVG(maximum_effort), 2) as maximum_effort'),
-                DB::raw('ROUND(AVG(automaticity), 2) as automaticity'),
-                DB::raw('ROUND(AVG(ideal_self_rating), 2) as ideal_self_rating'),
                 DB::raw('ROUND(AVG(stress_tension), 2) as stress_tension'),
-                DB::raw('ROUND(AVG(competition_entry), 2) as competition_entry'),
+                DB::raw('ROUND(AVG(flow_confidence), 2) as flow_confidence'),
+                DB::raw('ROUND(AVG(emotional_management), 2) as emotional_management'),
+                // Performance
+                DB::raw('ROUND(AVG(performance_satisfaction), 2) as performance_satisfaction'),
+                DB::raw('ROUND(AVG(max_level_rating), 2) as max_level_rating'),
                 DB::raw('COUNT(id) as total_competitions')
             ])
             ->groupBy(DB::raw('DATE(competition_date)'), 'competition_name')
@@ -52,21 +58,55 @@ class QuestionnaireApiController extends Controller
 
         // Formater les données pour correspondre au format demandé
         $formattedData = $averages->map(function ($item) {
+            // Calculer les moyennes par catégorie
+            $attentionAverage = round((
+                $item->full_mindfulness +
+                $item->objective_clarity +
+                $item->letting_go +
+                $item->decision_relevance
+            ) / 4, 2);
+
+            $engagementAverage = round((
+                $item->activation +
+                $item->engagement +
+                $item->initiative
+            ) / 3, 2);
+
+            $ressentiAverage = round((
+                $item->physical_sensations +
+                $item->stress_tension +
+                $item->flow_confidence +
+                $item->emotional_management
+            ) / 4, 2);
+
+            $performanceAverage = round((
+                $item->performance_satisfaction +
+                $item->max_level_rating
+            ) / 2, 2);
+
             return [
                 'competition_date' => $item->competition_date,
                 'competition_name' => $item->competition_name,
                 'total_competitions' => $item->total_competitions,
-                'Motivation' => $item->motivation,
-                'Focus' => $item->focus,
-                'Présence mentale' => $item->mental_presence,
+                // Moyennes par catégorie pour l'affichage principal
+                'Attention' => $attentionAverage,
+                'Engagement' => $engagementAverage,
+                'Ressentis' => $ressentiAverage,
+                'Performance' => $performanceAverage,
+                // Détails par question pour le filtrage avancé (libellés français exacts)
+                'Pleine conscience' => $item->full_mindfulness,
+                'Clarté des objectifs' => $item->objective_clarity,
+                'Lâcher prise' => $item->letting_go,
+                'Pertinence décisionnelle' => $item->decision_relevance,
+                'Activation' => $item->activation,
+                'Engagement' => $item->engagement,
+                'Prise d\'initiative' => $item->initiative,
                 'Sensations physiques' => $item->physical_sensations,
-                'Stabilité émotionnelle' => $item->emotional_stability,
-                'Prise de décision' => $item->decision_making,
-                'Effort maximum' => $item->maximum_effort,
-                'Automaticité' => $item->automaticity,
-                'Moi idéal' => $item->ideal_self_rating,
-                'Stress-Tension' => $item->stress_tension,
-                'Entrée compétition' => $item->competition_entry
+                'Stress - tension' => $item->stress_tension,
+                'Flow avec confiance' => $item->flow_confidence,
+                'Gestion des émotions' => $item->emotional_management,
+                'Satisfaction de ma performance' => $item->performance_satisfaction,
+                'Note par rapport à mon niveau max' => $item->max_level_rating
             ];
         });
 

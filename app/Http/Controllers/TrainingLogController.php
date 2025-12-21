@@ -16,10 +16,11 @@ class TrainingLogController extends Controller
             'duration' => 'required|string|max:50',
             'date' => 'required|date',
             'intensity' => 'required|numeric|between:0,10',
-            'ifp' => 'required|numeric|between:0,10',
+            'perceived_fatigue' => 'required|numeric|between:0,10',
             'engagement' => 'required|numeric|between:0,10',
             'focus' => 'required|numeric|between:0,10',
             'stress' => 'required|numeric|between:0,10',
+            'energie_jour' => 'required|numeric|between:0,10',
             'comment' => 'nullable|string',
             'productive' => 'required|boolean',
         ]);
@@ -41,10 +42,11 @@ class TrainingLogController extends Controller
                 'updated_at' => $trainingLog->updated_at->toISOString(),
                 'scores' => [
                     'intensity' => $trainingLog->intensity,
-                    'ifp' => $trainingLog->ifp,
+                    'perceived_fatigue' => $trainingLog->perceived_fatigue,
                     'engagement' => $trainingLog->engagement,
                     'focus' => $trainingLog->focus,
                     'stress' => $trainingLog->stress,
+                    'energie_jour' => $trainingLog->energie_jour,
                     'comment' => $trainingLog->comment,
                     'productive' => $trainingLog->productive,
                 ]
@@ -72,7 +74,25 @@ class TrainingLogController extends Controller
             ->findOrFail($id);
 
         return response()->json([
-            'data' => $trainingLog
+            'data' => [
+                'id' => $trainingLog->id,
+                'discipline' => $trainingLog->discipline,
+                'dominance' => $trainingLog->dominance,
+                'duration' => $trainingLog->duration,
+                'date' => $trainingLog->date,
+                'created_at' => $trainingLog->created_at->toISOString(),
+                'updated_at' => $trainingLog->updated_at->toISOString(),
+                'scores' => [
+                    'intensity' => $trainingLog->intensity,
+                    'perceived_fatigue' => $trainingLog->perceived_fatigue,
+                    'engagement' => $trainingLog->engagement,
+                    'focus' => $trainingLog->focus,
+                    'stress' => $trainingLog->stress,
+                    'energie_jour' => $trainingLog->energie_jour,
+                    'comment' => $trainingLog->comment,
+                    'productive' => $trainingLog->productive,
+                ]
+            ]
         ]);
     }
 
@@ -87,10 +107,11 @@ class TrainingLogController extends Controller
             'duration' => 'required|string|max:50',
             'date' => 'required|date',
             'intensity' => 'required|numeric|between:0,10',
-            'ifp' => 'required|numeric|between:0,10',
+            'perceived_fatigue' => 'required|numeric|between:0,10',
             'engagement' => 'required|numeric|between:0,10',
             'focus' => 'required|numeric|between:0,10',
             'stress' => 'required|numeric|between:0,10',
+            'energie_jour' => 'required|numeric|between:0,10',
             'comment' => 'nullable|string',
             'productive' => 'required|boolean',
         ]);
@@ -131,7 +152,43 @@ class TrainingLogController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $trainingLog
+            'data' => [
+                'id' => $trainingLog->id,
+                'discipline' => $trainingLog->discipline,
+                'dominance' => $trainingLog->dominance,
+                'duration' => $trainingLog->duration,
+                'date' => $trainingLog->date,
+                'created_at' => $trainingLog->created_at->toISOString(),
+                'updated_at' => $trainingLog->updated_at->toISOString(),
+                'scores' => [
+                    'intensity' => $trainingLog->intensity,
+                    'perceived_fatigue' => $trainingLog->perceived_fatigue,
+                    'engagement' => $trainingLog->engagement,
+                    'focus' => $trainingLog->focus,
+                    'stress' => $trainingLog->stress,
+                    'energie_jour' => $trainingLog->energie_jour,
+                    'comment' => $trainingLog->comment,
+                    'productive' => $trainingLog->productive,
+                ]
+            ]
+        ]);
+    }
+
+    public function getStats(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $totalTrainings = TrainingLog::where('user_id', $user->id)->count();
+        $productiveTrainings = TrainingLog::where('user_id', $user->id)
+                                         ->where('productive', true)
+                                         ->count();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'total_trainings' => $totalTrainings,
+                'productive_trainings' => $productiveTrainings,
+            ]
         ]);
     }
 }

@@ -15,18 +15,23 @@ class CompetitionFeedbackController extends Controller
             'competition_date' => 'required|date|before_or_equal:today',
             'situation_response' => 'required|integer|in:1,2',
             'victory_response' => 'required|integer|in:1,2',
-            'motivation' => 'required|numeric|between:0,10',
-            'focus' => 'required|numeric|between:0,10',
-            'mental_presence' => 'required|numeric|between:0,10',
-            'physical_sensations' => 'required|numeric|between:0,10',
-            'emotional_stability' => 'required|numeric|between:0,10',
-            'decision_making' => 'required|numeric|between:0,10',
-            'maximum_effort' => 'required|numeric|between:0,10',
-            'automaticity' => 'required|numeric|between:0,10',
-            'ideal_self_rating' => 'required|numeric|between:0,10',
-            'stress_tension' => 'required|numeric|between:0,10',
-            'competition_entry' => 'required|numeric|between:0,10',
-            'clear_objective' => 'required|string',
+            // Attention
+            'full_mindfulness' => 'required|numeric|min:0|max:10',
+            'objective_clarity' => 'required|numeric|min:0|max:10',
+            'letting_go' => 'required|numeric|min:0|max:10',
+            'decision_relevance' => 'required|numeric|min:0|max:10',
+            // Engagement
+            'activation' => 'required|numeric|min:0|max:10',
+            'engagement' => 'required|numeric|min:0|max:10',
+            'initiative' => 'required|numeric|min:0|max:10',
+            // Ressentis
+            'physical_sensations' => 'required|numeric|min:0|max:10',
+            'stress_tension' => 'required|numeric|min:0|max:10',
+            'flow_confidence' => 'required|numeric|min:0|max:10',
+            'emotional_management' => 'required|numeric|min:0|max:10',
+            // Performance
+            'performance_satisfaction' => 'required|numeric|min:0|max:10',
+            'max_level_rating' => 'required|numeric|min:0|max:10',
             'performance_comment' => 'nullable|string',
         ]);
 
@@ -46,18 +51,23 @@ class CompetitionFeedbackController extends Controller
                 'scores' => [
                     'situation_response' => $feedback->situation_response,
                     'victory_response' => $feedback->victory_response,
-                    'motivation' => $feedback->motivation,
-                    'focus' => $feedback->focus,
-                    'mental_presence' => $feedback->mental_presence,
+                    // Attention
+                    'full_mindfulness' => $feedback->full_mindfulness,
+                    'objective_clarity' => $feedback->objective_clarity,
+                    'letting_go' => $feedback->letting_go,
+                    'decision_relevance' => $feedback->decision_relevance,
+                    // Engagement
+                    'activation' => $feedback->activation,
+                    'engagement' => $feedback->engagement,
+                    'initiative' => $feedback->initiative,
+                    // Ressentis
                     'physical_sensations' => $feedback->physical_sensations,
-                    'emotional_stability' => $feedback->emotional_stability,
-                    'decision_making' => $feedback->decision_making,
-                    'maximum_effort' => $feedback->maximum_effort,
-                    'automaticity' => $feedback->automaticity,
-                    'ideal_self_rating' => $feedback->ideal_self_rating,
                     'stress_tension' => $feedback->stress_tension,
-                    'competition_entry' => $feedback->competition_entry,
-                    'clear_objective' => $feedback->clear_objective,
+                    'flow_confidence' => $feedback->flow_confidence,
+                    'emotional_management' => $feedback->emotional_management,
+                    // Performance
+                    'performance_satisfaction' => $feedback->performance_satisfaction,
+                    'max_level_rating' => $feedback->max_level_rating,
                     'performance_comment' => $feedback->performance_comment,
                 ]
             ]
@@ -98,18 +108,23 @@ class CompetitionFeedbackController extends Controller
             'competition_date' => 'required|date|before_or_equal:today',
             'situation_response' => 'required|integer|in:1,2',
             'victory_response' => 'required|integer|in:1,2',
-            'motivation' => 'required|numeric|between:0,10',
-            'focus' => 'required|numeric|between:0,10',
-            'mental_presence' => 'required|numeric|between:0,10',
-            'physical_sensations' => 'required|numeric|between:0,10',
-            'emotional_stability' => 'required|numeric|between:0,10',
-            'decision_making' => 'required|numeric|between:0,10',
-            'maximum_effort' => 'required|numeric|between:0,10',
-            'automaticity' => 'required|numeric|between:0,10',
-            'ideal_self_rating' => 'required|numeric|between:0,10',
-            'stress_tension' => 'required|numeric|between:0,10',
-            'competition_entry' => 'required|numeric|between:0,10',
-            'clear_objective' => 'required|string',
+            // Attention
+            'full_mindfulness' => 'required|numeric|min:0|max:10',
+            'objective_clarity' => 'required|numeric|min:0|max:10',
+            'letting_go' => 'required|numeric|min:0|max:10',
+            'decision_relevance' => 'required|numeric|min:0|max:10',
+            // Engagement
+            'activation' => 'required|numeric|min:0|max:10',
+            'engagement' => 'required|numeric|min:0|max:10',
+            'initiative' => 'required|numeric|min:0|max:10',
+            // Ressentis
+            'physical_sensations' => 'required|numeric|min:0|max:10',
+            'stress_tension' => 'required|numeric|min:0|max:10',
+            'flow_confidence' => 'required|numeric|min:0|max:10',
+            'emotional_management' => 'required|numeric|min:0|max:10',
+            // Performance
+            'performance_satisfaction' => 'required|numeric|min:0|max:10',
+            'max_level_rating' => 'required|numeric|min:0|max:10',
             'performance_comment' => 'nullable|string',
         ]);
 

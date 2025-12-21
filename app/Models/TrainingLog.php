@@ -12,16 +12,17 @@ class TrainingLog extends Model
 
     protected $fillable = [
         'user_id', 'discipline', 'dominance', 'duration', 'date',
-        'intensity', 'ifp', 'engagement', 'focus', 'stress',
-        'comment', 'productive'
+        'intensity', 'perceived_fatigue', 'engagement', 'focus', 'stress',
+        'energie_jour', 'comment', 'productive'
     ];
 
     protected $casts = [
         'intensity' => 'decimal:1',
-        'ifp' => 'decimal:1',
+        'perceived_fatigue' => 'decimal:1',
         'engagement' => 'decimal:1',
         'focus' => 'decimal:1',
         'stress' => 'decimal:1',
+        'energie_jour' => 'decimal:1',
         'productive' => 'boolean',
     ];
 
