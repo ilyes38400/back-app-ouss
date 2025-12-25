@@ -183,11 +183,111 @@ class TrainingLogController extends Controller
                                          ->where('productive', true)
                                          ->count();
 
+        $averages = TrainingLog::where('user_id', $user->id)
+            ->selectRaw('
+                AVG(intensity) as avg_intensity,
+                AVG(perceived_fatigue) as avg_perceived_fatigue,
+                AVG(engagement) as avg_engagement,
+                AVG(focus) as avg_focus,
+                AVG(stress) as avg_stress,
+                AVG(energie_jour) as avg_energie_jour
+            ')
+            ->first();
+
         return response()->json([
             'success' => true,
             'data' => [
                 'total_trainings' => $totalTrainings,
                 'productive_trainings' => $productiveTrainings,
+                'average_intensity' => round($averages->avg_intensity ?? 0, 2),
+                'average_perceived_fatigue' => round($averages->avg_perceived_fatigue ?? 0, 2),
+                'average_engagement' => round($averages->avg_engagement ?? 0, 2),
+                'average_focus' => round($averages->avg_focus ?? 0, 2),
+                'average_stress' => round($averages->avg_stress ?? 0, 2),
+                'average_energie_jour' => round($averages->avg_energie_jour ?? 0, 2),
+            ]
+        ]);
+    }
+
+    public function getDisciplineStats(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        // Trouver la discipline la plus pratiquée
+        $mostPracticedDiscipline = TrainingLog::where('user_id', $user->id)
+            ->select('discipline')
+            ->groupBy('discipline')
+            ->orderByRaw('COUNT(*) DESC')
+            ->first();
+
+        $mostPracticedStats = [];
+        if ($mostPracticedDiscipline) {
+            $stats = TrainingLog::where('user_id', $user->id)
+                ->where('discipline', $mostPracticedDiscipline->discipline)
+                ->selectRaw('
+                    COUNT(*) as training_count,
+                    AVG(CASE
+                        WHEN duration LIKE "%h%" THEN
+                            CAST(SUBSTRING_INDEX(duration, "h", 1) AS UNSIGNED) * 60 +
+                            IFNULL(CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(duration, "h", -1), "min", 1) AS UNSIGNED), 0)
+                        WHEN duration LIKE "%min%" THEN
+                            CAST(SUBSTRING_INDEX(duration, "min", 1) AS UNSIGNED)
+                        ELSE 0
+                    END) as avg_duration_minutes
+                ')
+                ->first();
+
+            $mostPracticedStats = [
+                'discipline' => $mostPracticedDiscipline->discipline,
+                'training_count' => $stats->training_count,
+                'average_duration_minutes' => round($stats->avg_duration_minutes ?? 0, 2),
+            ];
+        }
+
+        // Statistiques pour "préparation physique"
+        $physicalPrepStats = TrainingLog::where('user_id', $user->id)
+            ->where('discipline', 'LIKE', '%préparation physique%')
+            ->selectRaw('
+                COUNT(*) as training_count,
+                AVG(CASE
+                    WHEN duration LIKE "%h%" THEN
+                        CAST(SUBSTRING_INDEX(duration, "h", 1) AS UNSIGNED) * 60 +
+                        IFNULL(CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(duration, "h", -1), "min", 1) AS UNSIGNED), 0)
+                    WHEN duration LIKE "%min%" THEN
+                        CAST(SUBSTRING_INDEX(duration, "min", 1) AS UNSIGNED)
+                    ELSE 0
+                END) as avg_duration_minutes
+            ')
+            ->first();
+
+        // Statistiques pour "Visualisation"
+        $visualizationStats = TrainingLog::where('user_id', $user->id)
+            ->where('discipline', 'LIKE', '%visualisation%')
+            ->selectRaw('
+                COUNT(*) as training_count,
+                AVG(CASE
+                    WHEN duration LIKE "%h%" THEN
+                        CAST(SUBSTRING_INDEX(duration, "h", 1) AS UNSIGNED) * 60 +
+                        IFNULL(CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(duration, "h", -1), "min", 1) AS UNSIGNED), 0)
+                    WHEN duration LIKE "%min%" THEN
+                        CAST(SUBSTRING_INDEX(duration, "min", 1) AS UNSIGNED)
+                    ELSE 0
+                END) as avg_duration_minutes
+            ')
+            ->first();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'most_practiced_discipline' => $mostPracticedStats,
+                'preparation_physique' => [
+                    'training_count' => $physicalPrepStats->training_count ?? 0,
+                    'average_duration_minutes' => round($physicalPrepStats->avg_duration_minutes ?? 0, 2),
+                ],
+                'visualisation' => [
+                    'training_count' => $visualizationStats->training_count ?? 0,
+                    'average_duration_minutes' => round($visualizationStats->avg_duration_minutes ?? 0, 2),
+                ]
             ]
         ]);
     }
