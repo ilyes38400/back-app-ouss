@@ -38,7 +38,7 @@ class UserRequest extends FormRequest
                     'last_name' => 'required|string|max:255',
                     'email' => 'required|max:191|email|unique:ec_customers,email',
                     'password' => 'required|min:6',
-                    'phone_number' => 'required|max:20|unique:ec_customers,phone_number',
+                    'phone_number' => 'nullable|max:20|unique:ec_customers,phone_number',
                     'user_type' => 'required|string',
                     'status' => 'required|string',
                     'username' => 'required|unique:ec_customers,username',
@@ -50,7 +50,7 @@ class UserRequest extends FormRequest
                 $rules = [
                     'username' => 'required|unique:ec_customers,username,'.$user_id,
                     'email' => 'required|max:191|email|unique:ec_customers,email,'.$user_id,
-                    'phone_number' => 'max:20|unique:ec_customers,phone_number,'.$user_id,
+                    'phone_number' => 'nullable|max:20|unique:ec_customers,phone_number,'.$user_id,
                 ];
             }
         } else {
@@ -63,14 +63,14 @@ class UserRequest extends FormRequest
                     $rules = [
                         'username' => 'required|unique:ec_customers,username',
                         'email' => 'required|max:191|email|unique:ec_customers',
-                        'phone_number' => 'max:20|unique:ec_customers,phone_number',
+                        'phone_number' => 'nullable|max:20|unique:ec_customers,phone_number',
                     ];
                 break;
                 case 'patch':
                     $rules = [
                         'username' => 'required|unique:ec_customers,username,'.$user_id,
                         'email' => 'required|max:191|email|unique:ec_customers,email,'.$user_id,
-                        'phone_number' => 'max:20|unique:ec_customers,phone_number,'.$user_id,
+                        'phone_number' => 'nullable|max:20|unique:ec_customers,phone_number,'.$user_id,
                     ];
                 break;
             }
