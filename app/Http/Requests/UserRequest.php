@@ -38,20 +38,30 @@ class UserRequest extends FormRequest
                     'last_name' => 'required|string|max:255',
                     'email' => 'required|max:191|email|unique:ec_customers,email',
                     'password' => 'required|min:6',
-                    'phone_number' => 'nullable|max:20|unique:ec_customers,phone_number',
+                    'phone_number' => 'nullable|max:20',
                     'user_type' => 'required|string',
                     'status' => 'required|string',
                     'username' => 'required|unique:ec_customers,username',
                     'player_id' => 'nullable|string',
                     'login_type' => 'nullable|string',
                 ];
+
+                // Only validate phone uniqueness if it's not empty
+                if (!empty(request('phone_number'))) {
+                    $rules['phone_number'] .= '|unique:ec_customers,phone_number';
+                }
             } else {
                 // For other API operations (updates)
                 $rules = [
                     'username' => 'required|unique:ec_customers,username,'.$user_id,
                     'email' => 'required|max:191|email|unique:ec_customers,email,'.$user_id,
-                    'phone_number' => 'nullable|max:20|unique:ec_customers,phone_number,'.$user_id,
+                    'phone_number' => 'nullable|max:20',
                 ];
+
+                // Only validate phone uniqueness if it's not empty
+                if (!empty(request('phone_number'))) {
+                    $rules['phone_number'] .= '|unique:ec_customers,phone_number,'.$user_id;
+                }
             }
         } else {
 
@@ -63,15 +73,25 @@ class UserRequest extends FormRequest
                     $rules = [
                         'username' => 'required|unique:ec_customers,username',
                         'email' => 'required|max:191|email|unique:ec_customers',
-                        'phone_number' => 'nullable|max:20|unique:ec_customers,phone_number',
+                        'phone_number' => 'nullable|max:20',
                     ];
+
+                    // Only validate phone uniqueness if it's not empty
+                    if (!empty(request('phone_number'))) {
+                        $rules['phone_number'] .= '|unique:ec_customers,phone_number';
+                    }
                 break;
                 case 'patch':
                     $rules = [
                         'username' => 'required|unique:ec_customers,username,'.$user_id,
                         'email' => 'required|max:191|email|unique:ec_customers,email,'.$user_id,
-                        'phone_number' => 'nullable|max:20|unique:ec_customers,phone_number,'.$user_id,
+                        'phone_number' => 'nullable|max:20',
                     ];
+
+                    // Only validate phone uniqueness if it's not empty
+                    if (!empty(request('phone_number'))) {
+                        $rules['phone_number'] .= '|unique:ec_customers,phone_number,'.$user_id;
+                    }
                 break;
             }
         }

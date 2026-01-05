@@ -259,12 +259,19 @@ class UserController extends Controller
             $message = __('message.login_success');
         }
         else
-        {            
-            $validator = Validator::make($input,[
+        {
+            $rules = [
                 'email' => 'required|email|unique:users,email',
                 'username'  => 'required|unique:users,username',
-                'phone_number' => 'nullable|max:20|unique:users,phone_number',
-            ]);
+                'phone_number' => 'nullable|max:20',
+            ];
+
+            // Only validate phone uniqueness if it's not empty
+            if (!empty($input['phone_number'])) {
+                $rules['phone_number'] .= '|unique:users,phone_number';
+            }
+
+            $validator = Validator::make($input, $rules);
 
             if ( $validator->fails() ) {
                 $data = [
@@ -272,7 +279,7 @@ class UserController extends Controller
                     'message' => $validator->errors()->first(),
                     'all_message' =>  $validator->errors()
                 ];
-    
+
                 return json_custom_response($data, 422);
             }
 
