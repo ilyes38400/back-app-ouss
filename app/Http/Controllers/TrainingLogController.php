@@ -12,7 +12,7 @@ class TrainingLogController extends Controller
     {
         $validated = $request->validate([
             'discipline' => 'required|string|max:255',
-            'dominance' => 'required|in:mental,physique,technique,tactique',
+            'dominance' => 'required|in:mental,physique,technique,tactique,Test Match',
             'duration' => 'required|string|max:50',
             'date' => 'required|date',
             'intensity' => 'required|numeric|between:0,10',
