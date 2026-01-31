@@ -162,57 +162,21 @@ class MonitoringController extends Controller
 
         $email = $user->email;
 
-        // Participant
-        $participant = DB::table('questionnaire_participants')
-            ->where('email', $email)
-            ->first();
+        try {
+            // Appeler l'API externe
+            $response = \Illuminate\Support\Facades\Http::get('https://selfperform.fr/api/monthly-category-trends', [
+                'email' => $email
+            ]);
 
-        if (!$participant) {
+            if ($response->successful()) {
+                return response()->json($response->json());
+            } else {
+                return response()->json([]);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Erreur API monthly-category-trends: ' . $e->getMessage());
             return response()->json([]);
         }
-
-        // Catégories mensuelles (id => name)
-        $categories = DB::table('questionnaire_categories')
-            ->whereRaw('LOWER(TRIM(type)) = "mensuel"')
-            ->pluck('name', 'id');
-
-        if ($categories->isEmpty()) {
-            return response()->json([]);
-        }
-
-        // Agrégat par mois (premier jour du mois) avec fallback sur q.created_at si r.created_at est NULL
-        $rows = DB::table('questionnaire_user_responses as r')
-            ->join('questionnaires as q', 'q.id', '=', 'r.questionnaire_id')
-            ->join('questionnaire_categories as c', 'c.id', '=', 'r.category_id')
-            ->where('r.participant_id', $participant->id)
-            ->whereRaw('LOWER(TRIM(c.type)) = "mensuel"')
-            ->selectRaw("
-                r.category_id,
-                DATE_FORMAT(COALESCE(r.created_at, q.created_at), '%Y-%m-01') AS month_start,
-                AVG(r.score) AS avg_score
-            ")
-            ->groupBy('month_start', 'r.category_id')
-            ->orderBy('month_start')
-            ->get();
-
-        if ($rows->isEmpty()) {
-            return response()->json([]);
-        }
-
-        // Pivot en { month, month_start, <cat>: avg }
-        $byMonth = [];
-        foreach ($rows as $r) {
-            $ms = \Carbon\Carbon::parse($r->month_start);
-            $key = $ms->toDateString(); // premier jour du mois
-            $label = $ms->format('Y-m'); // format 2025-01
-
-            $byMonth[$key] ??= ['month' => $label, 'month_start' => $key];
-            $name = $categories[$r->category_id] ?? 'Inconnu';
-            $byMonth[$key][$name] = round((float)$r->avg_score, 2);
-        }
-
-        ksort($byMonth);
-        return response()->json(array_values($byMonth));
     }
 
     /**
