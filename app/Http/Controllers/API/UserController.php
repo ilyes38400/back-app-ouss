@@ -452,4 +452,17 @@ class UserController extends Controller
     return json_message_response('Poids idéal mis à jour avec succès.');
 }
 
+    public function getAllUsers(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $users = User::where('user_type', 'user')
+            ->select('id', 'first_name', 'last_name', 'email', 'username', 'status')
+            ->orderBy('first_name')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $users
+        ]);
+    }
+
 }

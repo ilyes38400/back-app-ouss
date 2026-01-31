@@ -38,6 +38,7 @@ use App\Http\Controllers\PushNotificationController;
 use App\Http\Controllers\SubscriptionController;
 
 use App\Http\Controllers\QuotesController;
+use App\Http\Controllers\MonitoringWebController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -158,6 +159,13 @@ Route::group(['middleware' => [ 'auth', 'useractive' ]], function () {
     Route::resource('mental-preparations', MentalPreparationController::class);
 
     Route::resource('home-informations', HomeInformationController::class);
+
+    // Monitoring des athlètes
+    Route::get('monitoring', [MonitoringWebController::class, 'index'])->name('monitoring.index');
+    Route::get('monitoring/training-stats', [MonitoringWebController::class, 'getTrainingStats'])->name('monitoring.training-stats');
+    Route::get('monitoring/discipline-stats', [MonitoringWebController::class, 'getDisciplineStats'])->name('monitoring.discipline-stats');
+    Route::get('monitoring/monthly-category', [MonitoringWebController::class, 'getMonthlyCategory'])->name('monitoring.monthly-category');
+    Route::get('monitoring/competition-averages', [MonitoringWebController::class, 'getCompetitionAverages'])->name('monitoring.competition-averages');
 
 });
 
