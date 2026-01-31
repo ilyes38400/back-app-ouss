@@ -1,4 +1,30 @@
 <x-app-layout>
+    <style>
+        /* Masquer la sidebar sur la page monitoring */
+        aside.sidebar,
+        aside[class*="sidebar"],
+        .sidebar-wrapper,
+        nav.sidebar,
+        #sidebar,
+        .iq-sidebar {
+            display: none !important;
+        }
+
+        /* Ajuster le contenu principal pour occuper toute la largeur */
+        main.main-content,
+        .main-content,
+        #main-content {
+            margin-left: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        /* Ajuster le wrapper si nécessaire */
+        .wrapper {
+            padding-left: 0 !important;
+        }
+    </style>
+
     <div class="container-fluid content-inner pb-0">
         <div class="row">
             <div class="col-sm-12">
@@ -267,8 +293,12 @@
                                         <i class="fas fa-chart-line me-2 text-white" style="font-size: 20px;"></i>
                                         <h5 class="mb-0 fw-bold text-white">Évolution mensuelle par catégorie</h5>
                                     </div>
-                                    <div style="background-color: white; padding: 15px; border-radius: 8px;">
+                                    <div style="background-color: white; padding: 15px; border-radius: 8px; position: relative;">
                                         <canvas id="monthlyCategoryChart" height="100"></canvas>
+                                        <div id="monthlyNoData" class="d-none text-center py-5">
+                                            <i class="fas fa-chart-line mb-2" style="font-size: 40px; color: #6c757d;"></i>
+                                            <p class="mb-0 text-muted">Aucune donnée disponible</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -280,8 +310,12 @@
                                         <i class="fas fa-medal me-2 text-white" style="font-size: 20px;"></i>
                                         <h5 class="mb-0 fw-bold text-white">Évolution performances compétition</h5>
                                     </div>
-                                    <div style="background-color: white; padding: 15px; border-radius: 8px;">
+                                    <div style="background-color: white; padding: 15px; border-radius: 8px; position: relative;">
                                         <canvas id="competitionChart" height="100"></canvas>
+                                        <div id="competitionNoData" class="d-none text-center py-5">
+                                            <i class="fas fa-medal mb-2" style="font-size: 40px; color: #6c757d;"></i>
+                                            <p class="mb-0 text-muted">Aucune donnée disponible</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -305,23 +339,66 @@
         </div>
     </div>
 
+    <!-- Select2 CSS dans le head -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        /* Style personnalisé pour Select2 */
+        .select2-container--default .select2-selection--single {
+            height: 38px !important;
+            padding: 6px 12px !important;
+            border: 1px solid #ced4da !important;
+            border-radius: 0.375rem !important;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 24px !important;
+            color: #495057 !important;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 36px !important;
+        }
+        .select2-dropdown {
+            border: 1px solid #ced4da !important;
+            border-radius: 0.375rem !important;
+        }
+    </style>
+
     @push('scripts')
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         let monthlyCategoryChart = null;
         let competitionChart = null;
         let expandedStats = false;
 
-        document.getElementById('userSelect').addEventListener('change', function() {
-            const userId = this.value;
+        // Initialiser Select2 pour la recherche d'athlète
+        $(document).ready(function() {
+            $('#userSelect').select2({
+                placeholder: '-- Choisir un athlète --',
+                allowClear: true,
+                width: '100%',
+                language: {
+                    noResults: function() {
+                        return "Aucun athlète trouvé";
+                    },
+                    searching: function() {
+                        return "Recherche en cours...";
+                    }
+                }
+            });
 
-            if (!userId) {
-                document.getElementById('statsContent').classList.add('d-none');
-                document.getElementById('initialMessage').classList.remove('d-none');
-                return;
-            }
+            // Gérer le changement de sélection
+            $('#userSelect').on('change', function() {
+                const userId = $(this).val();
 
-            loadUserStats(userId);
+                if (!userId) {
+                    document.getElementById('statsContent').classList.add('d-none');
+                    document.getElementById('initialMessage').classList.remove('d-none');
+                    return;
+                }
+
+                loadUserStats(userId);
+            });
         });
 
         function toggleExpandedStats() {
@@ -465,27 +542,18 @@
                 document.getElementById('disciplineFavoriteSection').classList.add('d-none');
             }
 
-            // Préparation physique
+            // Préparation physique - TOUJOURS afficher même à 0
             const prepPhysique = data.preparation_physique;
-            if (prepPhysique && prepPhysique.training_count > 0) {
-                hasExtendedStats = true;
-                document.getElementById('preparationPhysiqueSection').classList.remove('d-none');
-                document.getElementById('prepPhysiqueCount').textContent = prepPhysique.training_count || 0;
-                document.getElementById('prepPhysiqueDuration').textContent = Math.round(prepPhysique.average_duration_minutes || 0) + ' min';
-            } else {
-                document.getElementById('preparationPhysiqueSection').classList.add('d-none');
-            }
+            hasExtendedStats = true;
+            document.getElementById('preparationPhysiqueSection').classList.remove('d-none');
+            document.getElementById('prepPhysiqueCount').textContent = prepPhysique?.training_count || 0;
+            document.getElementById('prepPhysiqueDuration').textContent = Math.round(prepPhysique?.average_duration_minutes || 0) + ' min';
 
-            // Visualisation
+            // Visualisation - TOUJOURS afficher même à 0
             const visualisation = data.visualisation;
-            if (visualisation && visualisation.training_count > 0) {
-                hasExtendedStats = true;
-                document.getElementById('visualisationSection').classList.remove('d-none');
-                document.getElementById('visualisationCount').textContent = visualisation.training_count || 0;
-                document.getElementById('visualisationDuration').textContent = Math.round(visualisation.average_duration_minutes || 0) + ' min';
-            } else {
-                document.getElementById('visualisationSection').classList.add('d-none');
-            }
+            document.getElementById('visualisationSection').classList.remove('d-none');
+            document.getElementById('visualisationCount').textContent = visualisation?.training_count || 0;
+            document.getElementById('visualisationDuration').textContent = Math.round(visualisation?.average_duration_minutes || 0) + ' min';
 
             // Afficher le bouton expand si on a des stats étendues
             if (hasExtendedStats) {
@@ -496,12 +564,23 @@
         }
 
         function displayMonthlyCategory(data) {
+            // TOUJOURS afficher la section
+            document.getElementById('monthlyCategorySection').style.display = 'block';
+
+            // Si pas de données, afficher le message
             if (!Array.isArray(data) || data.length === 0) {
-                document.getElementById('monthlyCategorySection').style.display = 'none';
+                document.getElementById('monthlyCategoryChart').style.display = 'none';
+                document.getElementById('monthlyNoData').classList.remove('d-none');
+                if (monthlyCategoryChart) {
+                    monthlyCategoryChart.destroy();
+                    monthlyCategoryChart = null;
+                }
                 return;
             }
 
-            document.getElementById('monthlyCategorySection').style.display = 'block';
+            // Sinon afficher le graphique
+            document.getElementById('monthlyCategoryChart').style.display = 'block';
+            document.getElementById('monthlyNoData').classList.add('d-none');
 
             // Extraire les catégories uniques
             const categories = new Set();
@@ -558,12 +637,23 @@
         }
 
         function displayCompetitionData(data) {
+            // TOUJOURS afficher la section
+            document.getElementById('competitionSection').style.display = 'block';
+
+            // Si pas de données, afficher le message
             if (!Array.isArray(data) || data.length === 0) {
-                document.getElementById('competitionSection').style.display = 'none';
+                document.getElementById('competitionChart').style.display = 'none';
+                document.getElementById('competitionNoData').classList.remove('d-none');
+                if (competitionChart) {
+                    competitionChart.destroy();
+                    competitionChart = null;
+                }
                 return;
             }
 
-            document.getElementById('competitionSection').style.display = 'block';
+            // Sinon afficher le graphique
+            document.getElementById('competitionChart').style.display = 'block';
+            document.getElementById('competitionNoData').classList.add('d-none');
 
             const labels = data.map(d => {
                 const date = new Date(d.competition_date);
