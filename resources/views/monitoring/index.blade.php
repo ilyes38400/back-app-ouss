@@ -456,6 +456,7 @@
                 ]);
 
                 // Afficher les statistiques
+                console.log('Monthly data received:', monthlyData);
                 displayTrainingStats(trainingStats);
                 displayDisciplineStats(disciplineStats);
                 displayMonthlyCategory(monthlyData);

@@ -161,12 +161,15 @@ class MonitoringController extends Controller
         }
 
         $email = $user->email;
+        \Log::info('Calling monthly-category-trends API for user', ['user_id' => $userId, 'email' => $email]);
 
         try {
             // Appeler l'API externe
             $response = \Illuminate\Support\Facades\Http::get('https://selfperform.fr/api/monthly-category-trends', [
                 'email' => $email
             ]);
+
+            \Log::info('Monthly-category-trends API response', ['status' => $response->status(), 'data' => $response->json()]);
 
             if ($response->successful()) {
                 return response()->json([
