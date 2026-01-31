@@ -169,13 +169,22 @@ class MonitoringController extends Controller
             ]);
 
             if ($response->successful()) {
-                return response()->json($response->json());
+                return response()->json([
+                    'success' => true,
+                    'data' => $response->json()
+                ]);
             } else {
-                return response()->json([]);
+                return response()->json([
+                    'success' => true,
+                    'data' => []
+                ]);
             }
         } catch (\Exception $e) {
             \Log::error('Erreur API monthly-category-trends: ' . $e->getMessage());
-            return response()->json([]);
+            return response()->json([
+                'success' => true,
+                'data' => []
+            ]);
         }
     }
 

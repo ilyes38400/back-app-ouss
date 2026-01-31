@@ -563,9 +563,12 @@
             }
         }
 
-        function displayMonthlyCategory(data) {
+        function displayMonthlyCategory(response) {
             // TOUJOURS afficher la section
             document.getElementById('monthlyCategorySection').style.display = 'block';
+
+            // Extraire les données de la réponse
+            const data = response.success && response.data ? response.data : [];
 
             // Si pas de données, afficher le message
             if (!Array.isArray(data) || data.length === 0) {
