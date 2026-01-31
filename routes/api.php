@@ -14,6 +14,7 @@ use App\Http\Controllers\API\UserGoalAchievementController;
 use App\Http\Controllers\CompetitionFeedbackController;
 use App\Http\Controllers\QuestionnaireApiController;
 use App\Http\Controllers\TrainingLogController;
+use App\Http\Controllers\MonitoringController;
 
 /*
 |--------------------------------------------------------------------------
@@ -191,5 +192,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     // Route pour les moyennes des questionnaires de compétition
     Route::get('competition-feedback-averages', [QuestionnaireApiController::class, 'getCompetitionFeedbackAverages']);
+
+    // Routes pour le monitoring des athlètes
+    Route::get('users/all', [API\UserController::class, 'getAllUsers']);
+    Route::get('monitoring/training-stats', [MonitoringController::class, 'getUserTrainingStats']);
+    Route::get('monitoring/discipline-stats', [MonitoringController::class, 'getUserDisciplineStats']);
+    Route::get('monitoring/monthly-category', [MonitoringController::class, 'getUserMonthlyCategoryAverages']);
+    Route::get('monitoring/competition-averages', [MonitoringController::class, 'getUserCompetitionAverages']);
 
 });
