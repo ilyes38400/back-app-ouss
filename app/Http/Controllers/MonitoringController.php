@@ -168,7 +168,9 @@ class MonitoringController extends Controller
             $url = 'https://selfperform.fr/api/monthly-category-trends?email=' . urlencode($email);
             \Log::info('Calling API URL: ' . $url);
 
-            $response = \Illuminate\Support\Facades\Http::get($url);
+            $response = \Illuminate\Support\Facades\Http::withOptions([
+                'verify' => false
+            ])->get($url);
 
             \Log::info('API Response', [
                 'status' => $response->status(),
