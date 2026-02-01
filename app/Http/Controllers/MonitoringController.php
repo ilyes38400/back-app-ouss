@@ -165,25 +165,32 @@ class MonitoringController extends Controller
 
         try {
             // Appeler l'API externe
-            $response = \Illuminate\Support\Facades\Http::get('https://selfperform.fr/api/monthly-category-trends', [
-                'email' => $email
+            $url = 'https://selfperform.fr/api/monthly-category-trends?email=' . urlencode($email);
+            \Log::info('Calling API URL: ' . $url);
+
+            $response = \Illuminate\Support\Facades\Http::get($url);
+
+            \Log::info('API Response', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+                'json' => $response->json()
             ]);
 
-            \Log::info('Monthly-category-trends API response', ['status' => $response->status(), 'data' => $response->json()]);
-
             if ($response->successful()) {
+                $data = $response->json();
                 return response()->json([
                     'success' => true,
-                    'data' => $response->json()
+                    'data' => $data
                 ]);
             } else {
+                \Log::error('API call failed', ['status' => $response->status()]);
                 return response()->json([
                     'success' => true,
                     'data' => []
                 ]);
             }
         } catch (\Exception $e) {
-            \Log::error('Erreur API monthly-category-trends: ' . $e->getMessage());
+            \Log::error('Exception in monthly-category-trends: ' . $e->getMessage());
             return response()->json([
                 'success' => true,
                 'data' => []
