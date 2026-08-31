@@ -58,12 +58,40 @@ class TrainingLogController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        // per_page permet au bilan Entraînement de charger assez de séances
+        // pour tracer une courbe d'évolution.
+        $perPage = min((int) $request->query('per_page', 10), 200);
+
         $trainingLogs = TrainingLog::where('user_id', $request->user()->id)
             ->orderBy('date', 'desc')
-            ->paginate(10);
+            ->paginate($perPage);
+
+        // Même forme que show() : l'app lit les notes dans un objet "scores".
+        // À plat, TrainingLogScores.fromJson ne trouvait rien et retombait sur
+        // sa valeur par défaut (10.0) pour toutes les séances.
+        $data = collect($trainingLogs->items())->map(fn (TrainingLog $log) => [
+            'id' => $log->id,
+            'discipline' => $log->discipline,
+            'dominance' => $log->dominance,
+            'duration' => $log->duration,
+            'date' => $log->date,
+            'created_at' => $log->created_at->toISOString(),
+            'updated_at' => $log->updated_at->toISOString(),
+            'scores' => [
+                'intensity' => $log->intensity,
+                'perceived_fatigue' => $log->perceived_fatigue,
+                'engagement' => $log->engagement,
+                'focus' => $log->focus,
+                'technical_quality' => $log->technical_quality,
+                'stress' => $log->stress,
+                'energie_jour' => $log->energie_jour,
+                'comment' => $log->comment,
+                'productive' => $log->productive,
+            ],
+        ])->values();
 
         return response()->json([
-            'data' => $trainingLogs->items(),
+            'data' => $data,
             'total' => $trainingLogs->total(),
             'current_page' => $trainingLogs->currentPage(),
             'last_page' => $trainingLogs->lastPage(),

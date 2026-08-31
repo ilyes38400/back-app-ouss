@@ -4,12 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\CompetitionFeedback;
 use App\Models\User;
+use App\Models\WellbeingResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
 class QuestionnaireApiController extends Controller
 {
+    /** Questions selfperform composant chaque catégorie du bien-être. */
+    private const CATEGORY_QUESTION_IDS = [
+        'Santé physique' => [210, 211, 212, 213],
+        'Santé mentale' => [214, 215, 216, 217, 218, 219, 220],
+        'Hygiène' => [221, 222, 223, 224, 225, 226],
+        'Productivité' => [227, 228, 229, 230, 231, 232],
+    ];
+
     public function getCompetitionFeedbackAverages(Request $request): JsonResponse
     {
         // Validation du paramètre email
@@ -161,22 +170,45 @@ class QuestionnaireApiController extends Controller
             54 => 'Productivité',
         ];
 
+        $user = User::where('email', $email)->first();
+        if (!$user) {
+            return response()->json([]);
+        }
+
+        // Dernière soumission réelle du questionnaire bien-être.
+        $latest = WellbeingResponse::where('user_id', $user->id)
+            ->orderByDesc('submitted_at')
+            ->first();
+
+        $answers = $latest?->raw_answers ?? [];
+        if (empty($answers)) {
+            return response()->json([]);
+        }
+
         $result = [];
         foreach ($questionMap as $catId => $questions) {
             $qScores = [];
             foreach ($questions as $q) {
-                $score = round(rand(40, 85) / 10, 1);
+                // Une question sans réponse est omise plutôt qu'inventée.
+                if (!array_key_exists($q['id'], $answers)) {
+                    continue;
+                }
+
                 $qScores[] = [
                     'id' => $q['id'],
                     'label' => $q['label'],
-                    'score' => $score,
+                    'score' => round((float) $answers[$q['id']], 1),
                 ];
             }
-            $avg = round(collect($qScores)->avg('score'), 1);
+
+            if (empty($qScores)) {
+                continue;
+            }
+
             $result[] = [
                 'category_id' => $catId,
                 'category_name' => $catNames[$catId],
-                'average' => $avg,
+                'average' => round(collect($qScores)->avg('score'), 1),
                 'questions' => $qScores,
             ];
         }
@@ -210,30 +242,44 @@ class QuestionnaireApiController extends Controller
             return response()->json([]);
         }
 
-        $weeks = [];
-        $now = now();
-        for ($i = 7; $i >= 0; $i--) {
-            $weekStart = $now->copy()->subWeeks($i)->startOfWeek();
-            $weekNumber = $weekStart->weekOfYear;
-            $year = $weekStart->year;
-            $weekLabel = sprintf('%d-W%02d', $year, $weekNumber);
+        // Repli sur le miroir local : uniquement de vraies soumissions.
+        // Un compte neuf doit renvoyer une liste vide, pas une courbe inventée.
+        $responses = WellbeingResponse::where('user_id', $user->id)
+            ->orderBy('submitted_at')
+            ->get();
 
-            $base = [
-                'Santé physique' => rand(50, 85) / 10,
-                'Santé mentale' => rand(45, 80) / 10,
-                'Hygiène' => rand(55, 85) / 10,
-                'Productivité' => rand(45, 75) / 10,
-            ];
-
-            foreach ($base as $k => $v) {
-                $base[$k] = round($v, 1);
-            }
-
-            $weeks[] = array_merge([
-                'week' => $weekLabel,
-                'week_start' => $weekStart->format('Y-m-d'),
-            ], $base);
+        if ($responses->isEmpty()) {
+            return response()->json([]);
         }
+
+        $weeks = $responses
+            ->groupBy(fn (WellbeingResponse $r) => $r->submitted_at->copy()->startOfWeek()->format('Y-m-d'))
+            ->map(function ($group, $weekStartDate) {
+                $weekStart = \Carbon\Carbon::parse($weekStartDate);
+
+                $categoryAverages = [];
+                foreach (self::CATEGORY_QUESTION_IDS as $categoryName => $questionIds) {
+                    $values = [];
+                    foreach ($group as $response) {
+                        foreach ($questionIds as $questionId) {
+                            $score = ($response->raw_answers ?? [])[$questionId] ?? null;
+                            if ($score !== null) {
+                                $values[] = (float) $score;
+                            }
+                        }
+                    }
+
+                    if ($values) {
+                        $categoryAverages[$categoryName] = round(array_sum($values) / count($values), 1);
+                    }
+                }
+
+                return array_merge([
+                    'week' => sprintf('%d-W%02d', $weekStart->year, $weekStart->weekOfYear),
+                    'week_start' => $weekStart->format('Y-m-d'),
+                ], $categoryAverages);
+            })
+            ->values();
 
         return response()->json($weeks);
     }
