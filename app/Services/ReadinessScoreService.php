@@ -34,7 +34,7 @@ class ReadinessScoreService
             ->first();
 
         if (!$wb) {
-            return $this->insufficient('Données insuffisantes — remplis le questionnaire bien-être');
+            return $this->insufficient('Remplis ton questionnaire bien-être pour voir ton score');
         }
 
         $daysSince = (int) $wb->submitted_at->copy()->startOfDay()->diffInDays(now()->startOfDay());
@@ -166,8 +166,8 @@ class ReadinessScoreService
     private function zoneMessage(float $score): string
     {
         if ($score >= 75) return 'Tu es dans ta fenêtre optimale';
-        if ($score >= 50) return 'Tu peux performer — surveille ton stress';
-        return 'Récupération recommandée — évite de forcer';
+        if ($score >= 50) return 'Tu peux performer, garde un œil sur ton stress';
+        return "Récupère aujourd'hui, évite de forcer";
     }
 
     private function zoneColor(float $score): string
