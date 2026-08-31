@@ -14,6 +14,34 @@ class ReadinessScoreController extends Controller
     {
     }
 
+    /**
+     * GET /api/wellbeing-responses/status
+     *
+     * Permet à l'app de savoir si le questionnaire de la semaine est déjà
+     * rempli, avant même d'ouvrir le formulaire.
+     */
+    public function weeklyStatus(Request $request): JsonResponse
+    {
+        $existing = $this->currentWeekResponse($request->user()->id);
+        $weekStart = now()->startOfWeek();
+
+        return response()->json([
+            'completed' => $existing !== null,
+            'submitted_at' => $existing?->submitted_at->toIso8601String(),
+            'week_start' => $weekStart->toDateString(),
+            'week_end' => now()->endOfWeek()->toDateString(),
+            'next_available_at' => $weekStart->copy()->addWeek()->toIso8601String(),
+        ]);
+    }
+
+    private function currentWeekResponse(int $userId): ?WellbeingResponse
+    {
+        return WellbeingResponse::where('user_id', $userId)
+            ->whereBetween('submitted_at', [now()->startOfWeek(), now()->endOfWeek()])
+            ->orderByDesc('submitted_at')
+            ->first();
+    }
+
     /** GET /api/readiness-score */
     public function show(Request $request): JsonResponse
     {
@@ -34,6 +62,17 @@ class ReadinessScoreController extends Controller
             'responses' => 'required|array',
             'submitted_at' => 'nullable|date',
         ]);
+
+        // Le questionnaire bien-être est hebdomadaire : une soumission par
+        // semaine calendaire, sinon les moyennes et le score sont faussés.
+        $existing = $this->currentWeekResponse($request->user()->id);
+        if ($existing) {
+            return response()->json([
+                'message' => 'Questionnaire déjà rempli cette semaine',
+                'submitted_at' => $existing->submitted_at->toIso8601String(),
+                'next_available_at' => now()->startOfWeek()->addWeek()->toIso8601String(),
+            ], 409);
+        }
 
         $raw = [];
         $fields = [];

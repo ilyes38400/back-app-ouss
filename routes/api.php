@@ -200,6 +200,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // Accueil V2 — score "Prêt à performer"
     Route::get('readiness-score', [API\ReadinessScoreController::class, 'show']);
     Route::post('wellbeing-responses', [API\ReadinessScoreController::class, 'storeWellbeing']);
+    Route::get('wellbeing-responses/status', [API\ReadinessScoreController::class, 'weeklyStatus']);
 
     // Accueil V2 — compétitions à venir gérées par l'athlète
     Route::get('competitions', [API\UserCompetitionController::class, 'index']);
