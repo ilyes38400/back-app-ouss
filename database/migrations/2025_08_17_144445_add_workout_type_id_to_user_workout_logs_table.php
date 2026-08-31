@@ -11,6 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // La colonne existe déjà sur certaines bases sans que la migration y
+        // soit enregistrée : sans ce garde-fou, `php artisan migrate` échoue.
+        if (Schema::hasColumn('user_workout_logs', 'workout_type_id')) {
+            return;
+        }
+
         Schema::table('user_workout_logs', function (Blueprint $table) {
             $table->unsignedBigInteger('workout_type_id')->nullable();
             $table->foreign('workout_type_id')->references('id')->on('app_workout_types');
