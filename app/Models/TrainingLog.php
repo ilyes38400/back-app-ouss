@@ -12,7 +12,7 @@ class TrainingLog extends Model
 
     protected $fillable = [
         'user_id', 'discipline', 'dominance', 'duration', 'date',
-        'intensity', 'perceived_fatigue', 'engagement', 'focus', 'stress',
+        'intensity', 'perceived_fatigue', 'engagement', 'focus', 'technical_quality', 'stress',
         'energie_jour', 'comment', 'productive'
     ];
 
@@ -21,6 +21,7 @@ class TrainingLog extends Model
         'perceived_fatigue' => 'decimal:1',
         'engagement' => 'decimal:1',
         'focus' => 'decimal:1',
+        'technical_quality' => 'decimal:1',
         'stress' => 'decimal:1',
         'energie_jour' => 'decimal:1',
         'productive' => 'boolean',

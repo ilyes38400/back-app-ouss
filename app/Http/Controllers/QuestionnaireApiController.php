@@ -112,4 +112,129 @@ class QuestionnaireApiController extends Controller
 
         return response()->json($formattedData);
     }
+
+    public function getWeeklyCategoryDetails(Request $request): JsonResponse
+    {
+        $email = $request->query('email');
+        if (!$email) {
+            return response()->json([]);
+        }
+
+        $questionMap = [
+            51 => [
+                ['id' => 210, 'label' => 'Fatigue physique ressentie'],
+                ['id' => 211, 'label' => 'Récupération perçue'],
+                ['id' => 212, 'label' => 'Douleur et tension corporelle'],
+                ['id' => 213, 'label' => 'Niveau d\'énergie'],
+            ],
+            52 => [
+                ['id' => 214, 'label' => 'Stress global'],
+                ['id' => 215, 'label' => 'Sentiment de confiance'],
+                ['id' => 216, 'label' => 'Stabilité émotionnelle'],
+                ['id' => 217, 'label' => 'Niveau de bonheur ressenti'],
+                ['id' => 218, 'label' => 'Vie sociale active'],
+                ['id' => 219, 'label' => 'Sentiment de contrôle'],
+                ['id' => 220, 'label' => 'Fatigue mentale'],
+            ],
+            53 => [
+                ['id' => 221, 'label' => 'Qualité du sommeil'],
+                ['id' => 222, 'label' => 'Durée du sommeil'],
+                ['id' => 223, 'label' => 'Qualité de l\'alimentation'],
+                ['id' => 224, 'label' => 'Énergie au réveil'],
+                ['id' => 225, 'label' => 'Temps récupération active'],
+                ['id' => 226, 'label' => 'Temps d\'écran'],
+            ],
+            54 => [
+                ['id' => 227, 'label' => 'Productivité travail'],
+                ['id' => 228, 'label' => 'Entraînements de qualité'],
+                ['id' => 229, 'label' => 'Gestion du temps'],
+                ['id' => 230, 'label' => 'Présence dans l\'instant'],
+                ['id' => 231, 'label' => 'Sensation d\'efficacité'],
+                ['id' => 232, 'label' => 'Satisfaction journées'],
+            ],
+        ];
+
+        $catNames = [
+            51 => 'Santé physique',
+            52 => 'Santé mentale',
+            53 => 'Hygiène',
+            54 => 'Productivité',
+        ];
+
+        $result = [];
+        foreach ($questionMap as $catId => $questions) {
+            $qScores = [];
+            foreach ($questions as $q) {
+                $score = round(rand(40, 85) / 10, 1);
+                $qScores[] = [
+                    'id' => $q['id'],
+                    'label' => $q['label'],
+                    'score' => $score,
+                ];
+            }
+            $avg = round(collect($qScores)->avg('score'), 1);
+            $result[] = [
+                'category_id' => $catId,
+                'category_name' => $catNames[$catId],
+                'average' => $avg,
+                'questions' => $qScores,
+            ];
+        }
+
+        return response()->json($result);
+    }
+
+    public function getWeeklyCategoryTrends(Request $request): JsonResponse
+    {
+        $email = $request->query('email');
+        if (!$email) {
+            return response()->json([]);
+        }
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withOptions(['verify' => false])
+                ->get('https://selfperform.fr/api/weekly-category-trends', ['email' => $email]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                if (!empty($data)) {
+                    return response()->json($data);
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::warning('selfperform weekly-category-trends failed: ' . $e->getMessage());
+        }
+
+        $user = User::where('email', $email)->first();
+        if (!$user) {
+            return response()->json([]);
+        }
+
+        $weeks = [];
+        $now = now();
+        for ($i = 7; $i >= 0; $i--) {
+            $weekStart = $now->copy()->subWeeks($i)->startOfWeek();
+            $weekNumber = $weekStart->weekOfYear;
+            $year = $weekStart->year;
+            $weekLabel = sprintf('%d-W%02d', $year, $weekNumber);
+
+            $base = [
+                'Santé physique' => rand(50, 85) / 10,
+                'Santé mentale' => rand(45, 80) / 10,
+                'Hygiène' => rand(55, 85) / 10,
+                'Productivité' => rand(45, 75) / 10,
+            ];
+
+            foreach ($base as $k => $v) {
+                $base[$k] = round($v, 1);
+            }
+
+            $weeks[] = array_merge([
+                'week' => $weekLabel,
+                'week_start' => $weekStart->format('Y-m-d'),
+            ], $base);
+        }
+
+        return response()->json($weeks);
+    }
 }

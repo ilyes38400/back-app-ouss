@@ -76,9 +76,14 @@ class CompetitionFeedbackController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        // per_page permet au bilan Compétition de charger toute la saison d'un
+        // coup : les stats saison et la comparaison Défi/Menace doivent porter
+        // sur l'ensemble des compétitions, pas sur la première page.
+        $perPage = min((int) $request->query('per_page', 10), 200);
+
         $feedbacks = CompetitionFeedback::where('user_id', $request->user()->id)
             ->orderBy('competition_date', 'desc')
-            ->paginate(10);
+            ->paginate($perPage);
 
         return response()->json([
             'data' => $feedbacks->items(),

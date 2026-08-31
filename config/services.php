@@ -35,4 +35,19 @@ return [
         'rest_api_key' => env('ONESIGNAL_REST_API_KEY')
     ],
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Self Perform
+    |--------------------------------------------------------------------------
+    |
+    | Site vitrine + back-office éditorial (questionnaires, exercices mentaux,
+    | tâches hebdomadaires). Surchargeable pour pointer une préprod.
+    |
+    */
+
+    'selfperform' => [
+        'url' => env('SELFPERFORM_URL', 'https://selfperform.fr'),
+    ],
+
 ];

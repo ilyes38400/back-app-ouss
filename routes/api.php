@@ -193,6 +193,30 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // Route pour les moyennes des questionnaires de compétition
     Route::get('competition-feedback-averages', [QuestionnaireApiController::class, 'getCompetitionFeedbackAverages']);
 
+    // Routes bien-être (proxy selfperform + fallback)
+    Route::get('weekly-category-trends', [QuestionnaireApiController::class, 'getWeeklyCategoryTrends']);
+    Route::get('weekly-category-details', [QuestionnaireApiController::class, 'getWeeklyCategoryDetails']);
+
+    // Accueil V2 — score "Prêt à performer"
+    Route::get('readiness-score', [API\ReadinessScoreController::class, 'show']);
+    Route::post('wellbeing-responses', [API\ReadinessScoreController::class, 'storeWellbeing']);
+
+    // Accueil V2 — compétitions à venir gérées par l'athlète
+    Route::get('competitions', [API\UserCompetitionController::class, 'index']);
+    Route::post('competitions', [API\UserCompetitionController::class, 'store']);
+    Route::put('competitions/{id}', [API\UserCompetitionController::class, 'update']);
+    Route::delete('competitions/{id}', [API\UserCompetitionController::class, 'destroy']);
+
+    // Accueil V2 — objectifs du mois
+    Route::get('objectives', [API\UserObjectiveController::class, 'index']);
+    Route::post('objectives', [API\UserObjectiveController::class, 'store']);
+    Route::put('objectives/{id}', [API\UserObjectiveController::class, 'update']);
+    Route::delete('objectives/{id}', [API\UserObjectiveController::class, 'destroy']);
+
+    // Accueil V2 — tâches de la semaine
+    Route::get('weekly-tasks', [API\WeeklyTaskController::class, 'index']);
+    Route::post('weekly-tasks/toggle', [API\WeeklyTaskController::class, 'toggle']);
+
     // Routes pour le monitoring des athlètes
     Route::get('users/all', [API\UserController::class, 'getAllUsers']);
     Route::get('monitoring/training-stats', [MonitoringController::class, 'getUserTrainingStats']);
