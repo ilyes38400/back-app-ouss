@@ -176,28 +176,53 @@ class QuestionnaireApiController extends Controller
         }
 
         // Dernière soumission réelle du questionnaire bien-être.
+        // Le détail doit décrire EXACTEMENT la même chose que les moyennes et le
+        // dernier point de la courbe : la semaine la plus récente, pas la
+        // dernière soumission. Avec deux soumissions dans la même semaine, les
+        // deux écrans affichaient des chiffres différents pour la même période.
         $latest = WellbeingResponse::where('user_id', $user->id)
             ->orderByDesc('submitted_at')
             ->first();
 
-        $answers = $latest?->raw_answers ?? [];
-        if (empty($answers)) {
+        if (!$latest) {
+            return response()->json([]);
+        }
+
+        $weekStart = $latest->submitted_at->copy()->startOfWeek();
+        $weekResponses = WellbeingResponse::where('user_id', $user->id)
+            ->whereBetween('submitted_at', [$weekStart, $weekStart->copy()->endOfWeek()])
+            ->get();
+
+        // Toutes les valeurs relevées dans la semaine, question par question.
+        $answersByQuestion = [];
+        foreach ($weekResponses as $response) {
+            foreach (($response->raw_answers ?? []) as $questionId => $score) {
+                $answersByQuestion[(int) $questionId][] = (float) $score;
+            }
+        }
+
+        if (empty($answersByQuestion)) {
             return response()->json([]);
         }
 
         $result = [];
         foreach ($questionMap as $catId => $questions) {
             $qScores = [];
+            $allValues = [];
+
             foreach ($questions as $q) {
                 // Une question sans réponse est omise plutôt qu'inventée.
-                if (!array_key_exists($q['id'], $answers)) {
+                if (!isset($answersByQuestion[$q['id']])) {
                     continue;
                 }
+
+                $values = $answersByQuestion[$q['id']];
+                $allValues = array_merge($allValues, $values);
 
                 $qScores[] = [
                     'id' => $q['id'],
                     'label' => $q['label'],
-                    'score' => round((float) $answers[$q['id']], 1),
+                    'score' => round(array_sum($values) / count($values), 1),
                 ];
             }
 
@@ -208,7 +233,9 @@ class QuestionnaireApiController extends Controller
             $result[] = [
                 'category_id' => $catId,
                 'category_name' => $catNames[$catId],
-                'average' => round(collect($qScores)->avg('score'), 1),
+                // Même calcul que weekly-category-trends : moyenne de toutes les
+                // valeurs de la catégorie, pour que les deux écrans concordent.
+                'average' => round(array_sum($allValues) / count($allValues), 1),
                 'questions' => $qScores,
             ];
         }

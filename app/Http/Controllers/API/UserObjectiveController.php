@@ -61,7 +61,7 @@ class UserObjectiveController extends Controller
         $required = $partial ? 'sometimes' : 'required';
 
         return $request->validate([
-            'type' => "$required|in:technique,tactique,physique,mental",
+            'type' => "$required|in:technique,tactique,physique,mental,autre",
             'title' => "$required|string|max:255",
             'criterium' => 'nullable|string|max:255',
             'is_achieved' => 'nullable|boolean',
