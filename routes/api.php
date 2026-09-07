@@ -202,6 +202,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('wellbeing-responses', [API\ReadinessScoreController::class, 'storeWellbeing']);
     Route::get('wellbeing-responses/status', [API\ReadinessScoreController::class, 'weeklyStatus']);
 
+    // Campagne annuelle du questionnaire de départ (rouvre chaque septembre)
+    Route::get('annual-questionnaire/status', [API\AnnualQuestionnaireController::class, 'status']);
+    Route::post('annual-questionnaire/submissions', [API\AnnualQuestionnaireController::class, 'store']);
+
     // Accueil V2 — compétitions à venir gérées par l'athlète
     Route::get('competitions', [API\UserCompetitionController::class, 'index']);
     Route::post('competitions', [API\UserCompetitionController::class, 'store']);
